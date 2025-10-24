@@ -35,8 +35,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 30000, // 30 seconds
   socketTimeoutMS: 45000, // 45 seconds
-  bufferMaxEntries: 0,
-  bufferCommands: false,
+  bufferCommands: true, // Enable buffering for development
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));

@@ -265,8 +265,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // API Configuration
-        const API_BASE = 'http://localhost:3001/api';
-        const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZhM2U4YWZkY2IxYzBiYmM0YzJmOGQiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMjg1NzU3LCJleHAiOjE3NjE4OTA1NTd9.T52QCyxLzQkiPm7jm-_5Qsc_ajgs0raSEJmaz4ZBNwc';
+        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
+        const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZiOGM2NGNmODliOTk5Y2I5MTE1Y2UiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMzE1OTQzLCJleHAiOjE3NjE5MjA3NDN9.StcWvZPRfS2K8MvxITN62EZiYH5t0WDQ1fjiS5Qc-LI';
         
         // Fetch dashboard data
         async function loadDashboardData() {
