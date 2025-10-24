@@ -9,50 +9,76 @@ require('dotenv').config();
 
 const app = express();
 const server = createServer(app);
+
+// Configure Socket.io with better CORS settings
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "*",
-    methods: ["GET", "POST"]
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: false
   }
 });
 
 // Middleware
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP for development
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
 }));
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
-  credentials: true
+  origin: "*",
+  credentials: false,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Rate limiting
+// Rate limiting - more lenient for production
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Increased limit for production
+  message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
 
-// Database connection with better error handling
+// Database connection with retry logic
 const connectDB = async () => {
-  try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp_automation';
-    
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 30000, // 30 seconds
-      socketTimeoutMS: 45000, // 45 seconds
-      bufferCommands: true, // Enable buffering for development
-    });
-    
-    console.log('✅ Connected to MongoDB');
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
-    // Don't exit process in production, let the app continue
-    if (process.env.NODE_ENV === 'development') {
-      process.exit(1);
+  const maxRetries = 5;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp_automation';
+      
+      console.log(`🔄 Attempting to connect to MongoDB (attempt ${retries + 1}/${maxRetries})...`);
+      
+      await mongoose.connect(mongoURI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        bufferCommands: false,
+        bufferMaxEntries: 0
+      });
+      
+      console.log('✅ Connected to MongoDB successfully');
+      return;
+    } catch (error) {
+      retries++;
+      console.error(`❌ MongoDB connection attempt ${retries} failed:`, error.message);
+      
+      if (retries < maxRetries) {
+        console.log(`⏳ Retrying in 5 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } else {
+        console.error('❌ Failed to connect to MongoDB after all retries');
+        // Don't exit in production, let the app continue
+        if (process.env.NODE_ENV === 'development') {
+          process.exit(1);
+        }
+      }
     }
   }
 };
@@ -76,30 +102,41 @@ connectDB();
 // Serve static files
 app.use(express.static('public'));
 
-// Health check endpoint
+// Health check endpoint - this is crucial for Render
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  const healthCheck = {
+    status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  };
+  
+  console.log('🏥 Health check requested:', healthCheck);
+  res.status(200).json(healthCheck);
 });
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/clients', require('./routes/clients'));
-app.use('/api/contacts', require('./routes/contacts'));
-app.use('/api/templates', require('./routes/templates'));
-app.use('/api/messages', require('./routes/messages'));
-app.use('/api/appointments', require('./routes/appointments'));
-app.use('/api/billing', require('./routes/billing'));
-app.use('/api/alerts', require('./routes/alerts'));
-app.use('/api/webhook', require('./routes/webhook'));
-
-// Serve the main dashboard
+// Root endpoint
 app.get('/', (req, res) => {
+  console.log('🏠 Root endpoint accessed');
   res.sendFile(__dirname + '/public/index.html');
 });
+
+// API Routes with error handling
+try {
+  app.use('/api/auth', require('./routes/auth'));
+  app.use('/api/clients', require('./routes/clients'));
+  app.use('/api/contacts', require('./routes/contacts'));
+  app.use('/api/templates', require('./routes/templates'));
+  app.use('/api/messages', require('./routes/messages'));
+  app.use('/api/appointments', require('./routes/appointments'));
+  app.use('/api/billing', require('./routes/billing'));
+  app.use('/api/alerts', require('./routes/alerts'));
+  app.use('/api/webhook', require('./routes/webhook'));
+  console.log('✅ All API routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading API routes:', error);
+}
 
 // Socket.io for real-time updates
 io.on('connection', (socket) => {
@@ -129,32 +166,43 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use('*', (req, res) => {
+  console.log('❌ Route not found:', req.originalUrl);
   res.status(404).json({ message: 'Route not found' });
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM received, shutting down gracefully');
+const gracefulShutdown = () => {
+  console.log('🛑 Graceful shutdown initiated');
   server.close(() => {
-    console.log('✅ Process terminated');
-    mongoose.connection.close();
+    console.log('✅ HTTP server closed');
+    mongoose.connection.close(false, () => {
+      console.log('✅ MongoDB connection closed');
+      process.exit(0);
+    });
   });
-});
+};
 
-process.on('SIGINT', () => {
-  console.log('🛑 SIGINT received, shutting down gracefully');
-  server.close(() => {
-    console.log('✅ Process terminated');
-    mongoose.connection.close();
-  });
-});
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
 
+// Start server
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on ${HOST}:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📊 Health check: http://${HOST}:${PORT}/health`);
+  console.log(`🏠 Main app: http://${HOST}:${PORT}/`);
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('❌ Server error:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use`);
+    process.exit(1);
+  }
 });
 
 module.exports = { app, io };
