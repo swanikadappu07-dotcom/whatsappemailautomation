@@ -266,7 +266,14 @@
     <script>
         // API Configuration
         const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
-        const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZiOGM2NGNmODliOTk5Y2I5MTE1Y2UiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMzE1OTQzLCJleHAiOjE3NjE5MjA3NDN9.StcWvZPRfS2K8MvxITN62EZiYH5t0WDQ1fjiS5Qc-LI';
+        
+        // Check for authentication
+        let AUTH_TOKEN = localStorage.getItem('authToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZiOGM2NGNmODliOTk5Y2I5MTE1Y2UiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMzE1OTQzLCJleHAiOjE3NjE5MjA3NDN9.StcWvZPRfS2K8MvxITN62EZiYH5t0WDQ1fjiS5Qc-LI';
+        
+        // Redirect to registration if no token and not localhost
+        if (!AUTH_TOKEN && window.location.hostname !== 'localhost') {
+            window.location.href = 'register.html';
+        }
         
         // Fetch dashboard data
         async function loadDashboardData() {
