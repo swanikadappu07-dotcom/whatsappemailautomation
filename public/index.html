@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Business Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .main-content {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 10px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white"><i class="fab fa-whatsapp"></i> WhatsApp Automation</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#dashboard">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contacts.html">
+                                <i class="fas fa-users me-2"></i> Contacts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/messages.html">
+                                <i class="fas fa-comments me-2"></i> Messages
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/templates.html">
+                                <i class="fas fa-file-alt me-2"></i> Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/appointments.html">
+                                <i class="fas fa-calendar me-2"></i> Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/billing.html">
+                                <i class="fas fa-receipt me-2"></i> Billing
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/settings.html">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#alerts">
+                                <i class="fas fa-bell me-2"></i> Alerts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/settings.html">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> New Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Messages</div>
+                                        <div class="h5 mb-0 font-weight-bold">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-comments fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-uppercase mb-1">Contacts</div>
+                                        <div class="h5 mb-0 font-weight-bold">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-uppercase mb-1">Appointments</div>
+                                        <div class="h5 mb-0 font-weight-bold">0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-uppercase mb-1">Revenue</div>
+                                        <div class="h5 mb-0 font-weight-bold">$0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-dollar-sign fa-2x"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">Recent Messages</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Contact</th>
+                                                <th>Message</th>
+                                                <th>Status</th>
+                                                <th>Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="4" class="text-center">Loading contacts...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" type="button" onclick="quickAction('bulk-message')">
+                                        <i class="fas fa-plus"></i> Send Bulk Message
+                                    </button>
+                                    <button class="btn btn-outline-primary" type="button" onclick="quickAction('appointment')">
+                                        <i class="fas fa-calendar-plus"></i> Schedule Appointment
+                                    </button>
+                                    <button class="btn btn-outline-primary" type="button" onclick="quickAction('billing')">
+                                        <i class="fas fa-file-invoice"></i> Create Bill
+                                    </button>
+                                    <button class="btn btn-outline-primary" type="button" onclick="quickAction('alert')">
+                                        <i class="fas fa-bell"></i> Send Alert
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">WhatsApp Status</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-circle text-success"></i>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <div class="fw-bold">Connected</div>
+                                        <div class="text-muted">WhatsApp Business API is active</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:3001/api';
+        const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZhM2U4YWZkY2IxYzBiYmM0YzJmOGQiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMjg1NzU3LCJleHAiOjE3NjE4OTA1NTd9.T52QCyxLzQkiPm7jm-_5Qsc_ajgs0raSEJmaz4ZBNwc';
+        
+        // Fetch dashboard data
+        async function loadDashboardData() {
+            try {
+                const [contactsRes, templatesRes, appointmentsRes, billingRes] = await Promise.all([
+                    fetch(`${API_BASE}/contacts`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    }),
+                    fetch(`${API_BASE}/templates`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    }),
+                    fetch(`${API_BASE}/appointments`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    }),
+                    fetch(`${API_BASE}/billing`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    })
+                ]);
+
+                const contacts = await contactsRes.json();
+                const templates = await templatesRes.json();
+                const appointments = await appointmentsRes.json();
+                const billing = await billingRes.json();
+
+                // Update stats
+                document.querySelector('.stat-card:nth-child(1) .h5').textContent = '0'; // Messages
+                document.querySelector('.stat-card:nth-child(2) .h5').textContent = contacts.total || 0; // Contacts
+                document.querySelector('.stat-card:nth-child(3) .h5').textContent = appointments.total || 0; // Appointments
+                
+                // Calculate total revenue
+                const totalRevenue = billing.bills ? billing.bills.reduce((sum, bill) => sum + bill.amount, 0) : 0;
+                document.querySelector('.stat-card:nth-child(4) .h5').textContent = `$${totalRevenue.toLocaleString()}`;
+
+                // Update recent messages table with real data
+                const messagesTable = document.querySelector('.table tbody');
+                messagesTable.innerHTML = '';
+                
+                if (contacts.contacts && contacts.contacts.length > 0) {
+                    contacts.contacts.slice(0, 3).forEach(contact => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${contact.name}</td>
+                            <td>Welcome message</td>
+                            <td><span class="badge bg-success">Ready</span></td>
+                            <td>Just now</td>
+                        `;
+                        messagesTable.appendChild(row);
+                    });
+                } else {
+                    messagesTable.innerHTML = '<tr><td colspan="4" class="text-center">No contacts yet</td></tr>';
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Quick Actions functionality
+        function quickAction(action) {
+            switch(action) {
+                case 'bulk-message':
+                    // Show quick bulk message prompt
+                    quickBulkMessage();
+                    break;
+                case 'appointment':
+                    // Navigate to appointments page
+                    window.location.href = '/appointments.html';
+                    break;
+                case 'billing':
+                    // Navigate to billing page
+                    window.location.href = '/billing.html';
+                    break;
+                case 'alert':
+                    // Show alert creation modal or navigate to messages
+                    showAlertModal();
+                    break;
+                default:
+                    console.log('Unknown action:', action);
+            }
+        }
+
+        // Show alert creation modal
+        function showAlertModal() {
+            const alertMessage = prompt('Enter your alert message:');
+            if (alertMessage && alertMessage.trim()) {
+                // Navigate to messages page with alert pre-filled
+                window.location.href = `/messages.html?alert=${encodeURIComponent(alertMessage)}`;
+            }
+        }
+
+        // Quick bulk message functionality
+        function quickBulkMessage() {
+            const message = prompt('Enter your bulk message:');
+            if (message && message.trim()) {
+                // Navigate to messages page with bulk message pre-filled
+                window.location.href = `/messages.html?bulk=${encodeURIComponent(message)}`;
+            }
+        }
+
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+        // Navigation handling
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                
+                // Only prevent default for hash links (#)
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    console.log('Navigate to:', href);
+                }
+                // For actual HTML files, let the browser navigate normally
+                // No preventDefault() for real links
+            });
+        });
+    </script>
+</body>
+</html>

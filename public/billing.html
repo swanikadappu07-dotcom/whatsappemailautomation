@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - WhatsApp Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .main-content {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border: none;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #1ea952 0%, #0f7a6b 100%);
+        }
+        .bill-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        .bill-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        .status-draft { background: #e2e3e5; color: #383d41; }
+        .status-sent { background: #cce5ff; color: #004085; }
+        .status-viewed { background: #fff3cd; color: #856404; }
+        .status-paid { background: #d4edda; color: #155724; }
+        .status-overdue { background: #f8d7da; color: #721c24; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white"><i class="fab fa-whatsapp"></i> WhatsApp Automation</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contacts.html">
+                                <i class="fas fa-users me-2"></i> Contacts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/messages.html">
+                                <i class="fas fa-comments me-2"></i> Messages
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/templates.html">
+                                <i class="fas fa-file-alt me-2"></i> Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/appointments.html">
+                                <i class="fas fa-calendar me-2"></i> Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/billing.html">
+                                <i class="fas fa-receipt me-2"></i> Billing
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/settings.html">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Billing & Invoices</h1>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary" onclick="refreshBills()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBillModal">
+                            <i class="fas fa-plus"></i> New Bill
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bills List -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">Your Bills & Invoices</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="billsList">
+                                    <div class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Loading bills...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Create Bill Modal -->
+    <div class="modal fade" id="createBillModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Bill</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createBillForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="billContact" class="form-label">Contact</label>
+                                    <select class="form-select" id="billContact" required>
+                                        <option value="">Select Contact</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="billAmount" class="form-label">Amount</label>
+                                    <input type="number" class="form-control" id="billAmount" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="billDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="billDescription" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="billDueDate" class="form-label">Due Date</label>
+                                    <input type="date" class="form-control" id="billDueDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="billCurrency" class="form-label">Currency</label>
+                                    <select class="form-select" id="billCurrency">
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="INR">INR</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="billNotes" class="form-label">Notes</label>
+                            <textarea class="form-control" id="billNotes" rows="2" placeholder="Additional notes for the bill"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createBill()">Create Bill</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZhM2U4YWZkY2IxYzBiYmM0YzJmOGQiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMjg1NzU3LCJleHAiOjE3NjE4OTA1NTd9.T52QCyxLzQkiPm7jm-_5Qsc_ajgs0raSEJmaz4ZBNwc';
+        let bills = [];
+        let contacts = [];
+
+        // Load bills
+        async function loadBills() {
+            try {
+                const response = await fetch(`${API_BASE}/billing`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const data = await response.json();
+                bills = data.bills || [];
+                displayBills();
+            } catch (error) {
+                console.error('Error loading bills:', error);
+                document.getElementById('billsList').innerHTML = '<div class="alert alert-danger">Error loading bills.</div>';
+            }
+        }
+
+        // Load contacts for dropdown
+        async function loadContacts() {
+            try {
+                const response = await fetch(`${API_BASE}/contacts`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const data = await response.json();
+                contacts = data.contacts || [];
+                
+                const select = document.getElementById('billContact');
+                select.innerHTML = '<option value="">Select Contact</option>';
+                contacts.forEach(contact => {
+                    select.innerHTML += `<option value="${contact._id}">${contact.name} (${contact.phone})</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+            }
+        }
+
+        // Display bills
+        function displayBills() {
+            const container = document.getElementById('billsList');
+            if (bills.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">No bills found. Create your first bill!</div>';
+                return;
+            }
+
+            let html = '';
+            bills.forEach(bill => {
+                const statusClass = bill.status === 'draft' ? 'status-draft' : 
+                                  bill.status === 'sent' ? 'status-sent' : 
+                                  bill.status === 'viewed' ? 'status-viewed' : 
+                                  bill.status === 'paid' ? 'status-paid' : 
+                                  bill.status === 'overdue' ? 'status-overdue' : 'status-cancelled';
+                
+                const dueDate = new Date(bill.dueDate);
+                const formattedDueDate = dueDate.toLocaleDateString();
+                const isOverdue = dueDate < new Date() && bill.status !== 'paid';
+                
+                html += `
+                    <div class="bill-card ${isOverdue ? 'border-danger' : ''}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2">Invoice #${bill.invoiceNumber}</h6>
+                                <p class="text-muted mb-2">${bill.description || 'No description'}</p>
+                                <div class="d-flex gap-3 mb-2">
+                                    <small><i class="fas fa-user"></i> ${bill.contactId.name}</small>
+                                    <small><i class="fas fa-dollar-sign"></i> ${bill.currency} ${bill.amount.toFixed(2)}</small>
+                                    <small><i class="fas fa-calendar"></i> Due: ${formattedDueDate}</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <span class="badge ${statusClass}">${bill.status.toUpperCase()}</span>
+                                    ${isOverdue ? '<span class="badge bg-danger">OVERDUE</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="btn-group-vertical">
+                                <button class="btn btn-sm btn-outline-primary" onclick="viewBill('${bill._id}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="sendBill('${bill._id}')" 
+                                    ${bill.status === 'sent' || bill.status === 'paid' ? 'disabled' : ''}>
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" onclick="markPaid('${bill._id}')" 
+                                    ${bill.status === 'paid' ? 'disabled' : ''}>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="cancelBill('${bill._id}')" 
+                                    ${bill.status === 'cancelled' ? 'disabled' : ''}>
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Create bill
+        async function createBill() {
+            const contactId = document.getElementById('billContact').value;
+            const amount = document.getElementById('billAmount').value;
+            const description = document.getElementById('billDescription').value;
+            const dueDate = document.getElementById('billDueDate').value;
+            const currency = document.getElementById('billCurrency').value;
+            const notes = document.getElementById('billNotes').value;
+
+            if (!contactId || !amount || !dueDate) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/billing`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        contactId,
+                        amount: parseFloat(amount),
+                        description,
+                        dueDate,
+                        currency,
+                        notes
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Bill created successfully!');
+                    document.getElementById('createBillForm').reset();
+                    bootstrap.Modal.getInstance(document.getElementById('createBillModal')).hide();
+                    loadBills();
+                } else {
+                    const error = await response.json();
+                    alert('Error creating bill: ' + error.message);
+                }
+            } catch (error) {
+                console.error('Error creating bill:', error);
+                alert('Error creating bill');
+            }
+        }
+
+        // View bill
+        function viewBill(billId) {
+            const bill = bills.find(b => b._id === billId);
+            if (bill) {
+                const dueDate = new Date(bill.dueDate);
+                alert(`Invoice #${bill.invoiceNumber}\n\nContact: ${bill.contactId.name}\nAmount: ${bill.currency} ${bill.amount.toFixed(2)}\nDue Date: ${dueDate.toLocaleDateString()}\nStatus: ${bill.status}\nDescription: ${bill.description || 'No description'}`);
+            }
+        }
+
+        // Send bill
+        async function sendBill(billId) {
+            try {
+                const response = await fetch(`${API_BASE}/billing/${billId}/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Bill sent successfully!');
+                    loadBills();
+                } else {
+                    const error = await response.json();
+                    alert('Error sending bill: ' + error.message);
+                }
+            } catch (error) {
+                console.error('Error sending bill:', error);
+                alert('Error sending bill');
+            }
+        }
+
+        // Mark as paid
+        async function markPaid(billId) {
+            if (!confirm('Are you sure this bill has been paid?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/billing/${billId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({ 
+                        status: 'paid',
+                        paidDate: new Date().toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Bill marked as paid!');
+                    loadBills();
+                } else {
+                    const error = await response.json();
+                    alert('Error marking bill as paid: ' + error.message);
+                }
+            } catch (error) {
+                console.error('Error marking bill as paid:', error);
+                alert('Error marking bill as paid');
+            }
+        }
+
+        // Cancel bill
+        async function cancelBill(billId) {
+            if (!confirm('Are you sure you want to cancel this bill?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/billing/${billId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    },
+                    body: JSON.stringify({ status: 'cancelled' })
+                });
+
+                if (response.ok) {
+                    alert('Bill cancelled!');
+                    loadBills();
+                } else {
+                    const error = await response.json();
+                    alert('Error cancelling bill: ' + error.message);
+                }
+            } catch (error) {
+                console.error('Error cancelling bill:', error);
+                alert('Error cancelling bill');
+            }
+        }
+
+        // Refresh bills
+        function refreshBills() {
+            loadBills();
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBills();
+            loadContacts();
+        });
+    </script>
+</body>
+</html>

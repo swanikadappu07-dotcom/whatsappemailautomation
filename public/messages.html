@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Messages - WhatsApp Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 5px 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .main-content {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border: none;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #1ea952 0%, #0f7a6b 100%);
+        }
+        .message-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .contact-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .contact-card:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+        .contact-card.selected {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white"><i class="fab fa-whatsapp"></i> WhatsApp Automation</h4>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/contacts.html">
+                                <i class="fas fa-users me-2"></i> Contacts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#messages">
+                                <i class="fas fa-comments me-2"></i> Messages
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/templates.html">
+                                <i class="fas fa-file-alt me-2"></i> Templates
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/appointments.html">
+                                <i class="fas fa-calendar me-2"></i> Appointments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/billing.html">
+                                <i class="fas fa-receipt me-2"></i> Billing
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/settings.html">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Send Messages</h1>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary" onclick="loadTemplates()">
+                            <i class="fas fa-file-alt"></i> Use Template
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="sendBulkMessage()">
+                            <i class="fas fa-paper-plane"></i> Send Bulk Message
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Contact Selection -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">Select Contacts</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <input type="text" class="form-control" id="searchContacts" placeholder="Search contacts..." onkeyup="filterContacts()">
+                                </div>
+                                <div id="contactsList" style="max-height: 400px; overflow-y: auto;">
+                                    <div class="text-center">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2">Loading contacts...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Composition -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="m-0 font-weight-bold text-primary">Compose Message</h6>
+                            </div>
+                            <div class="card-body">
+                                <form id="messageForm">
+                                    <div class="mb-3">
+                                        <label for="messageType" class="form-label">Message Type</label>
+                                        <select class="form-select" id="messageType" onchange="toggleMessageType()">
+                                            <option value="text">Text Message</option>
+                                            <option value="template">Template Message</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Text Message -->
+                                    <div id="textMessageDiv">
+                                        <div class="mb-3">
+                                            <label for="messageText" class="form-label">Message Text</label>
+                                            <textarea class="form-control" id="messageText" rows="4" placeholder="Type your message here..."></textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Template Message -->
+                                    <div id="templateMessageDiv" style="display: none;">
+                                        <div class="mb-3">
+                                            <label for="templateSelect" class="form-label">Select Template</label>
+                                            <select class="form-select" id="templateSelect" onchange="loadTemplateContent()">
+                                                <option value="">Choose a template...</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="templateParams" class="form-label">Template Parameters (comma separated)</label>
+                                            <input type="text" class="form-control" id="templateParams" placeholder="John, $100, Dec 25, https://pay.com">
+                                        </div>
+                                    </div>
+
+                                    <div class="message-preview" id="messagePreview" style="display: none;">
+                                        <h6>Message Preview:</h6>
+                                        <div id="previewContent"></div>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-success" onclick="sendMessage()">
+                                            <i class="fab fa-whatsapp"></i> Send Message
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message History -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="m-0 font-weight-bold text-primary">Recent Messages</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="messageHistory">
+                            <div class="text-center">
+                                <p class="text-muted">No messages sent yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        let AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZhM2U4YWZkY2IxYzBiYmM0YzJmOGQiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMjg1NzU3LCJleHAiOjE3NjE4OTA1NTd9.T52QCyxLzQkiPm7jm-_5Qsc_ajgs0raSEJmaz4ZBNwc';
+        let selectedContacts = [];
+        let contacts = [];
+        let templates = [];
+
+        // Login and get token
+        async function login() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'joshua@example.com',
+                        password: 'password123'
+                    })
+                });
+                const data = await response.json();
+                AUTH_TOKEN = data.token;
+                console.log('Logged in successfully');
+                loadContacts();
+                loadTemplates();
+            } catch (error) {
+                console.error('Login failed:', error);
+                document.getElementById('contactsList').innerHTML = '<div class="alert alert-danger">Login failed. Please check the server.</div>';
+            }
+        }
+
+        // Load contacts
+        async function loadContacts() {
+            try {
+                const response = await fetch(`${API_BASE}/contacts`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const data = await response.json();
+                contacts = data.contacts || [];
+                displayContacts();
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                document.getElementById('contactsList').innerHTML = '<div class="alert alert-danger">Error loading contacts.</div>';
+            }
+        }
+
+        // Display contacts
+        function displayContacts() {
+            const container = document.getElementById('contactsList');
+            if (contacts.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">No contacts found. <a href="/contacts.html">Add contacts first</a></div>';
+                return;
+            }
+
+            let html = '';
+            contacts.forEach(contact => {
+                html += `
+                    <div class="contact-card" onclick="toggleContact('${contact._id}')" id="contact-${contact._id}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${contact.name}</strong><br>
+                                <small class="text-muted">${contact.phone}</small>
+                            </div>
+                            <div>
+                                <input type="checkbox" id="checkbox-${contact._id}" onchange="toggleContact('${contact._id}')">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Toggle contact selection
+        function toggleContact(contactId) {
+            const checkbox = document.getElementById(`checkbox-${contactId}`);
+            const card = document.getElementById(`contact-${contactId}`);
+            
+            if (selectedContacts.includes(contactId)) {
+                selectedContacts = selectedContacts.filter(id => id !== contactId);
+                checkbox.checked = false;
+                card.classList.remove('selected');
+            } else {
+                selectedContacts.push(contactId);
+                checkbox.checked = true;
+                card.classList.add('selected');
+            }
+            
+            updateMessagePreview();
+        }
+
+        // Filter contacts
+        function filterContacts() {
+            const searchTerm = document.getElementById('searchContacts').value.toLowerCase();
+            const contactCards = document.querySelectorAll('.contact-card');
+            
+            contactCards.forEach(card => {
+                const contactName = card.querySelector('strong').textContent.toLowerCase();
+                const contactPhone = card.querySelector('small').textContent.toLowerCase();
+                
+                if (contactName.includes(searchTerm) || contactPhone.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Load templates
+        async function loadTemplates() {
+            try {
+                const response = await fetch(`${API_BASE}/templates`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const data = await response.json();
+                templates = data.templates || [];
+                
+                const select = document.getElementById('templateSelect');
+                select.innerHTML = '<option value="">Choose a template...</option>';
+                templates.forEach(template => {
+                    select.innerHTML += `<option value="${template._id}">${template.name}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        // Toggle message type
+        function toggleMessageType() {
+            const messageType = document.getElementById('messageType').value;
+            const textDiv = document.getElementById('textMessageDiv');
+            const templateDiv = document.getElementById('templateMessageDiv');
+            
+            if (messageType === 'text') {
+                textDiv.style.display = 'block';
+                templateDiv.style.display = 'none';
+            } else {
+                textDiv.style.display = 'none';
+                templateDiv.style.display = 'block';
+            }
+            updateMessagePreview();
+        }
+
+        // Load template content
+        function loadTemplateContent() {
+            const templateId = document.getElementById('templateSelect').value;
+            const template = templates.find(t => t._id === templateId);
+            
+            if (template) {
+                document.getElementById('templateParams').placeholder = 
+                    `Parameters for: ${template.components[0].text}`;
+            }
+            updateMessagePreview();
+        }
+
+        // Update message preview
+        function updateMessagePreview() {
+            const preview = document.getElementById('messagePreview');
+            const content = document.getElementById('previewContent');
+            
+            if (selectedContacts.length === 0) {
+                preview.style.display = 'none';
+                return;
+            }
+            
+            const messageType = document.getElementById('messageType').value;
+            let messageText = '';
+            
+            if (messageType === 'text') {
+                messageText = document.getElementById('messageText').value;
+            } else {
+                const templateId = document.getElementById('templateSelect').value;
+                const template = templates.find(t => t._id === templateId);
+                if (template) {
+                    messageText = template.components[0].text;
+                }
+            }
+            
+            if (messageText) {
+                content.innerHTML = `
+                    <div class="mb-2"><strong>To:</strong> ${selectedContacts.length} contact(s)</div>
+                    <div class="mb-2"><strong>Message:</strong></div>
+                    <div class="border p-2 rounded">${messageText}</div>
+                `;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            if (selectedContacts.length === 0) {
+                alert('Please select at least one contact');
+                return;
+            }
+
+            const messageType = document.getElementById('messageType').value;
+            let messageText = '';
+            let templateId = null;
+            let templateData = null;
+
+            if (messageType === 'text') {
+                messageText = document.getElementById('messageText').value;
+                if (!messageText.trim()) {
+                    alert('Please enter a message');
+                    return;
+                }
+            } else {
+                templateId = document.getElementById('templateSelect').value;
+                if (!templateId) {
+                    alert('Please select a template');
+                    return;
+                }
+                
+                const template = templates.find(t => t._id === templateId);
+                if (!template) {
+                    alert('Template not found');
+                    return;
+                }
+                
+                messageText = template.components[0].text;
+                
+                // Handle template parameters
+                const templateParams = document.getElementById('templateParams').value;
+                if (templateParams) {
+                    const variables = templateParams.split(',').map(v => v.trim());
+                    templateData = {
+                        name: template.name,
+                        variables: variables
+                    };
+                }
+            }
+
+            try {
+                let successCount = 0;
+                let errorCount = 0;
+                const results = [];
+
+                for (const contactId of selectedContacts) {
+                    const contact = contacts.find(c => c._id === contactId);
+                    
+                    try {
+                        const requestBody = {
+                            contactId: contactId,
+                            type: messageType,
+                            content: messageText
+                        };
+
+                        // Add template-specific data
+                        if (messageType === 'template') {
+                            requestBody.templateId = templateId;
+                            if (templateData) {
+                                requestBody.templateData = templateData;
+                            }
+                        }
+
+                        const response = await fetch(`${API_BASE}/messages/send`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${AUTH_TOKEN}`
+                            },
+                            body: JSON.stringify(requestBody)
+                        });
+
+                        const result = await response.json();
+                        
+                        if (response.ok) {
+                            successCount++;
+                            results.push({ contact: contact.name, status: 'success', messageId: result.messageId });
+                        } else {
+                            errorCount++;
+                            results.push({ contact: contact.name, status: 'failed', error: result.message });
+                        }
+                    } catch (error) {
+                        console.error('Error sending message:', error);
+                        errorCount++;
+                        results.push({ contact: contact.name, status: 'failed', error: error.message });
+                    }
+                }
+
+                // Show detailed results
+                let resultMessage = `Messages sent: ${successCount} successful, ${errorCount} failed\n\n`;
+                results.forEach(result => {
+                    resultMessage += `${result.contact}: ${result.status}\n`;
+                    if (result.error) {
+                        resultMessage += `  Error: ${result.error}\n`;
+                    }
+                });
+                
+                alert(resultMessage);
+                
+                // Clear form
+                document.getElementById('messageForm').reset();
+                selectedContacts = [];
+                displayContacts();
+                document.getElementById('messagePreview').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error sending messages:', error);
+                alert('Error sending messages: ' + error.message);
+            }
+        }
+
+        // Send bulk message
+        function sendBulkMessage() {
+            if (selectedContacts.length === 0) {
+                alert('Please select contacts first');
+                return;
+            }
+            sendMessage();
+        }
+
+        // Add event listeners
+        document.getElementById('messageText').addEventListener('input', updateMessagePreview);
+        document.getElementById('templateSelect').addEventListener('change', updateMessagePreview);
+        document.getElementById('templateParams').addEventListener('input', updateMessagePreview);
+
+        // Handle URL parameters (for quick actions)
+        function handleUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const alertMessage = urlParams.get('alert');
+            const bulkMessage = urlParams.get('bulk');
+            
+            if (alertMessage) {
+                // Pre-fill the message text with alert
+                document.getElementById('messageText').value = alertMessage;
+                // Select text message type
+                document.getElementById('messageType').value = 'text';
+                toggleMessageType();
+                updateMessagePreview();
+            } else if (bulkMessage) {
+                // Pre-fill the message text with bulk message
+                document.getElementById('messageText').value = bulkMessage;
+                // Select text message type
+                document.getElementById('messageType').value = 'text';
+                toggleMessageType();
+                updateMessagePreview();
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            login();
+            handleUrlParameters();
+        });
+    </script>
+</body>
+</html>

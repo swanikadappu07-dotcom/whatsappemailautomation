@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .stat { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Data Test</h1>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+        const AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGZhM2U4YWZkY2IxYzBiYmM0YzJmOGQiLCJyb2xlIjoiY2xpZW50IiwiaWF0IjoxNzYxMjMwNjU3LCJleHAiOjE3NjE4MzU0NTd9.RCA3V9EROCwfp1w_2f44iB6NfiCk494b7Oel-k9n3Po';
+        
+        async function testDashboard() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Loading dashboard data...</p>';
+            
+            try {
+                const [contactsRes, templatesRes, appointmentsRes, billingRes] = await Promise.all([
+                    fetch(`${API_BASE}/contacts`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    }),
+                    fetch(`${API_BASE}/templates`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    }),
+                    fetch(`${API_BASE}/appointments`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    }),
+                    fetch(`${API_BASE}/billing`, {
+                        headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                    })
+                ]);
+
+                const contacts = await contactsRes.json();
+                const templates = await templatesRes.json();
+                const appointments = await appointmentsRes.json();
+                const billing = await billingRes.json();
+
+                const totalRevenue = billing.bills ? billing.bills.reduce((sum, bill) => sum + bill.amount, 0) : 0;
+
+                results.innerHTML = `
+                    <div class="stat">
+                        <h3>📞 Contacts: ${contacts.total || 0}</h3>
+                        <p>${contacts.contacts ? contacts.contacts.map(c => c.name).join(', ') : 'No contacts'}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>📝 Templates: ${templates.total || 0}</h3>
+                        <p>${templates.templates ? templates.templates.map(t => t.name).join(', ') : 'No templates'}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>📅 Appointments: ${appointments.total || 0}</h3>
+                        <p>${appointments.appointments ? appointments.appointments.map(a => a.title).join(', ') : 'No appointments'}</p>
+                    </div>
+                    <div class="stat">
+                        <h3>💰 Revenue: $${totalRevenue.toLocaleString()}</h3>
+                        <p>${billing.bills ? billing.bills.length + ' bills' : 'No bills'}</p>
+                    </div>
+                    <div class="success">
+                        <h3>✅ Dashboard Data Loaded Successfully!</h3>
+                        <p>All API calls completed successfully.</p>
+                    </div>
+                `;
+
+            } catch (error) {
+                results.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error Loading Dashboard Data</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load data when page loads
+        testDashboard();
+    </script>
+</body>
+</html>
