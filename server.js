@@ -132,6 +132,7 @@ try {
   app.use('/api/billing', require('./routes/billing'));
   app.use('/api/alerts', require('./routes/alerts'));
   app.use('/api/webhook', require('./routes/webhook'));
+  app.use('/api/whatsapp', require('./routes/whatsapp'));
   console.log('✅ All API routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading API routes:', error);

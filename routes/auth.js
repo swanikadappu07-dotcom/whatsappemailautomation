@@ -190,4 +190,36 @@ router.put('/whatsapp-config', auth, async (req, res) => {
   }
 });
 
+// Update WhatsApp configuration
+router.put('/whatsapp-config', auth, async (req, res) => {
+  try {
+    const { accessToken, phoneNumberId, verifyToken, webhookUrl } = req.body;
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update WhatsApp configuration
+    user.whatsappConfig = {
+      accessToken,
+      phoneNumberId,
+      verifyToken,
+      webhookUrl,
+      isActive: !!(accessToken && phoneNumberId),
+      updatedAt: new Date()
+    };
+
+    await user.save();
+
+    res.json({
+      message: 'WhatsApp configuration updated successfully',
+      whatsappConfig: user.whatsappConfig
+    });
+  } catch (error) {
+    console.error('WhatsApp config update error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 module.exports = router;
