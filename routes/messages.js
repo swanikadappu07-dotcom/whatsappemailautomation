@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Message = require('../models/Message');
 const Contact = require('../models/Contact');
 const Template = require('../models/Template');
@@ -424,6 +425,12 @@ async function sendTemplateMessage(message, user, contact, template, variables) 
 // Schedule cron job for pending messages
 cron.schedule('* * * * *', async () => {
   try {
+    // Check if MongoDB is connected before running the cron job
+    if (mongoose.connection.readyState !== 1) {
+      console.log('MongoDB not connected, skipping cron job');
+      return;
+    }
+
     const pendingMessages = await Message.find({
       status: 'pending',
       scheduledFor: { $lte: new Date() }
