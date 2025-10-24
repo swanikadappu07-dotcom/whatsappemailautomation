@@ -42,9 +42,18 @@ router.get('/test', auth, async (req, res) => {
         }
     } catch (error) {
         console.error('WhatsApp test error:', error);
+        
+        let errorMessage = 'WhatsApp API Error: ' + error.message;
+        
+        if (error.response && error.response.status === 401) {
+            errorMessage = 'WhatsApp Access Token has expired. Please get a new token from Facebook Developers.';
+        } else if (error.response && error.response.data && error.response.data.error) {
+            errorMessage = 'WhatsApp API Error: ' + error.response.data.error.message;
+        }
+        
         res.status(500).json({
             success: false,
-            message: 'WhatsApp API Error: ' + error.message
+            message: errorMessage
         });
     }
 });

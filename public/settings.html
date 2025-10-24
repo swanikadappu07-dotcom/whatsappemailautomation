@@ -371,7 +371,12 @@
                     alert('WhatsApp configuration saved successfully!');
                     loadCurrentConfig();
                 } else {
-                    alert('Error saving configuration');
+                    const errorData = await response.json();
+                    if (errorData.message && errorData.message.includes('expired')) {
+                        alert('Error: Your WhatsApp Access Token has expired. Please get a new token from Facebook Developers and try again.');
+                    } else {
+                        alert('Error saving configuration: ' + (errorData.message || 'Unknown error'));
+                    }
                 }
             } catch (error) {
                 console.error('Error saving config:', error);
