@@ -53,6 +53,12 @@ const connectDB = async () => {
       const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/whatsapp_automation';
       
       console.log(`🔄 Attempting to connect to MongoDB (attempt ${retries + 1}/${maxRetries})...`);
+      console.log(`🔗 MongoDB URI: ${mongoURI.replace(/\/\/.*@/, '//***:***@')}`); // Hide credentials in logs
+      
+      // Validate MongoDB URI format
+      if (!mongoURI.startsWith('mongodb://') && !mongoURI.startsWith('mongodb+srv://')) {
+        throw new Error('Invalid MongoDB URI format. Must start with mongodb:// or mongodb+srv://');
+      }
       
       await mongoose.connect(mongoURI, {
         useNewUrlParser: true,
@@ -73,6 +79,8 @@ const connectDB = async () => {
         await new Promise(resolve => setTimeout(resolve, 5000));
       } else {
         console.error('❌ Failed to connect to MongoDB after all retries');
+        console.error('💡 Make sure MONGODB_URI environment variable is set correctly');
+        console.error('💡 For Render deployment, check your environment variables in the dashboard');
         // Don't exit in production, let the app continue
         if (process.env.NODE_ENV === 'development') {
           process.exit(1);
@@ -175,9 +183,15 @@ const gracefulShutdown = () => {
   console.log('🛑 Graceful shutdown initiated');
   server.close(() => {
     console.log('✅ HTTP server closed');
-    mongoose.connection.close();
-    console.log('✅ MongoDB connection closed');
-    process.exit(0);
+    mongoose.connection.close()
+      .then(() => {
+        console.log('✅ MongoDB connection closed');
+        process.exit(0);
+      })
+      .catch((err) => {
+        console.error('❌ Error closing MongoDB connection:', err);
+        process.exit(1);
+      });
   });
 };
 
