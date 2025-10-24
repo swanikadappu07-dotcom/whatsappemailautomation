@@ -91,12 +91,12 @@ router.get('/:id', auth, async (req, res) => {
 // Create contact
 router.post('/', auth, async (req, res) => {
   try {
-    const { name, phone, email, tags, customFields, notes } = req.body;
+    const { name, phone, phoneNumber, email, tags, customFields, notes } = req.body;
 
     const contact = new Contact({
       userId: req.user.userId,
       name,
-      phone,
+      phone: phone || phoneNumber, // Handle both field names
       email,
       tags: tags || [],
       customFields: customFields || [],
