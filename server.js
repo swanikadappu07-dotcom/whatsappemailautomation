@@ -123,6 +123,29 @@ app.get('/health', (req, res) => {
   res.status(200).json(healthCheck);
 });
 
+// Debug endpoint to check loaded routes
+app.get('/debug/routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach(middleware => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach(handler => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            methods: Object.keys(handler.route.methods)
+          });
+        }
+      });
+    }
+  });
+  res.json({ routes, totalRoutes: routes.length });
+});
+
 // Root endpoint - redirect to login
 app.get('/', (req, res) => {
   console.log('🏠 Root endpoint accessed - redirecting to login');
