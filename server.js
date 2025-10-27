@@ -65,7 +65,7 @@ const connectDB = async () => {
         useUnifiedTopology: true,
         serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 45000,
-        bufferCommands: false
+        bufferCommands: true
       });
       
       console.log('✅ Connected to MongoDB successfully');
@@ -123,10 +123,10 @@ app.get('/health', (req, res) => {
   res.status(200).json(healthCheck);
 });
 
-// Root endpoint
+// Root endpoint - redirect to login
 app.get('/', (req, res) => {
-  console.log('🏠 Root endpoint accessed');
-  res.sendFile(__dirname + '/public/index.html');
+  console.log('🏠 Root endpoint accessed - redirecting to login');
+  res.redirect('/login.html');
 });
 
 // API Routes with error handling
@@ -141,6 +141,7 @@ try {
   app.use('/api/alerts', require('./routes/alerts'));
   app.use('/api/webhook', require('./routes/webhook'));
   app.use('/api/whatsapp', require('./routes/whatsapp'));
+  app.use('/api/token', require('./routes/token')); // Added token management routes
   console.log('✅ All API routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading API routes:', error);
@@ -202,11 +203,21 @@ process.on('SIGINT', gracefulShutdown);
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, HOST, () => {
+server.listen(PORT, HOST, async () => {
   console.log(`🚀 Server running on ${HOST}:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Health check: http://${HOST}:${PORT}/health`);
   console.log(`🏠 Main app: http://${HOST}:${PORT}/`);
+  
+  // Connect to database
+  await connectDB();
+  
+  // Start token monitoring in production
+  if (process.env.NODE_ENV === 'production') {
+    const tokenManager = require('./services/tokenManager');
+    tokenManager.startMonitoring();
+    console.log('🔄 Token monitoring started');
+  }
 });
 
 // Handle server errors
