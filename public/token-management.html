@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Management - WhatsApp Automation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        .status-card {
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-active {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-left: 4px solid #28a745;
+        }
+        
+        .status-expired {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-left: 4px solid #dc3545;
+        }
+        
+        .status-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-left: 4px solid #ffc107;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(37, 211, 102, 0.3);
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+        }
+        
+        .form-control:focus {
+            border-color: #25D366;
+            box-shadow: 0 0 0 0.2rem rgba(37, 211, 102, 0.25);
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .loading.show {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="fab fa-whatsapp"></i> Token Management</h1>
+            <p>Monitor and manage your WhatsApp API tokens</p>
+        </div>
+        
+        <div class="content">
+            <div id="alertContainer"></div>
+            
+            <!-- Token Status -->
+            <div class="card status-card" id="statusCard">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-shield-alt me-2"></i>Token Status
+                    </h5>
+                    <div id="tokenStatus">
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Checking token status...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Token Management -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-key me-2"></i>Update Token
+                    </h5>
+                    <p class="text-muted">Enter your new WhatsApp Access Token to update the configuration.</p>
+                    
+                    <form id="tokenForm">
+                        <div class="mb-3">
+                            <label for="accessToken" class="form-label">WhatsApp Access Token</label>
+                            <textarea 
+                                class="form-control" 
+                                id="accessToken" 
+                                rows="3" 
+                                placeholder="Enter your WhatsApp Access Token here..."
+                                required
+                            ></textarea>
+                            <div class="form-text">
+                                Get your token from <a href="https://developers.facebook.com/" target="_blank">Facebook Developers Console</a>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-primary" onclick="testToken()">
+                                <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
+                                <i class="fas fa-vial me-2"></i>
+                                <span class="btn-text">Test Token</span>
+                            </button>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <span class="loading spinner-border spinner-border-sm me-2" role="status"></span>
+                                <i class="fas fa-save me-2"></i>
+                                <span class="btn-text">Update Token</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Token Info -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>Token Information
+                    </h5>
+                    <div id="tokenInfo">
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading token information...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="d-flex gap-2 mt-3">
+                <a href="index.html" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                <button class="btn btn-outline-info" onclick="refreshStatus()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api';
+        let AUTH_TOKEN = localStorage.getItem('authToken');
+        
+        // Check for authentication
+        if (!AUTH_TOKEN) {
+            window.location.href = 'login.html';
+        }
+        
+        // Show alert
+        function showAlert(message, type = 'danger') {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+        
+        // Load token status
+        async function loadTokenStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/token/status`, {
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    }
+                });
+                
+                const status = await response.json();
+                displayTokenStatus(status);
+            } catch (error) {
+                console.error('Error loading token status:', error);
+                displayTokenStatus({ status: 'error', error: error.message });
+            }
+        }
+        
+        // Display token status
+        function displayTokenStatus(status) {
+            const statusCard = document.getElementById('statusCard');
+            const tokenStatus = document.getElementById('tokenStatus');
+            
+            let statusClass, statusIcon, statusText, statusColor;
+            
+            switch (status.status) {
+                case 'active':
+                    statusClass = 'status-active';
+                    statusIcon = 'fas fa-check-circle';
+                    statusText = 'Token is Active';
+                    statusColor = 'text-success';
+                    break;
+                case 'expired':
+                    statusClass = 'status-expired';
+                    statusIcon = 'fas fa-exclamation-triangle';
+                    statusText = 'Token is Expired';
+                    statusColor = 'text-danger';
+                    break;
+                case 'not_configured':
+                    statusClass = 'status-warning';
+                    statusIcon = 'fas fa-exclamation-circle';
+                    statusText = 'Token Not Configured';
+                    statusColor = 'text-warning';
+                    break;
+                default:
+                    statusClass = 'status-warning';
+                    statusIcon = 'fas fa-question-circle';
+                    statusText = 'Unknown Status';
+                    statusColor = 'text-muted';
+            }
+            
+            statusCard.className = `card status-card ${statusClass}`;
+            tokenStatus.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="${statusIcon} ${statusColor} me-3" style="font-size: 2rem;"></i>
+                    <div>
+                        <h6 class="mb-1 ${statusColor}">${statusText}</h6>
+                        ${status.lastChecked ? `<small class="text-muted">Last checked: ${new Date(status.lastChecked).toLocaleString()}</small>` : ''}
+                        ${status.lastError ? `<br><small class="text-danger">Error: ${status.lastError}</small>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Load token info
+        async function loadTokenInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/token/info`, {
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`
+                    }
+                });
+                
+                const info = await response.json();
+                displayTokenInfo(info);
+            } catch (error) {
+                console.error('Error loading token info:', error);
+                document.getElementById('tokenInfo').innerHTML = `
+                    <div class="text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading token information: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Display token info
+        function displayTokenInfo(info) {
+            const tokenInfo = document.getElementById('tokenInfo');
+            tokenInfo.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Status:</strong> 
+                        <span class="badge ${info.isActive ? 'bg-success' : 'bg-danger'}">
+                            ${info.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Phone Number ID:</strong> ${info.phoneNumberId || 'Not set'}
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Last Updated:</strong> 
+                        ${info.lastUpdated ? new Date(info.lastUpdated).toLocaleString() : 'Never'}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Last Checked:</strong> 
+                        ${info.lastChecked ? new Date(info.lastChecked).toLocaleString() : 'Never'}
+                    </div>
+                </div>
+                ${info.lastError ? `
+                    <hr>
+                    <div class="text-danger">
+                        <strong>Last Error:</strong> ${info.lastError}
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        // Test token
+        async function testToken() {
+            const accessToken = document.getElementById('accessToken').value.trim();
+            const btn = document.querySelector('button[onclick="testToken()"]');
+            const loading = btn.querySelector('.loading');
+            const btnText = btn.querySelector('.btn-text');
+            
+            if (!accessToken) {
+                showAlert('Please enter a token to test', 'warning');
+                return;
+            }
+            
+            // Show loading
+            btn.disabled = true;
+            loading.classList.add('show');
+            btnText.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/token/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ accessToken })
+                });
+                
+                const result = await response.json();
+                
+                if (result.valid) {
+                    showAlert('✅ Token is valid and working!', 'success');
+                } else {
+                    showAlert(`❌ Token is invalid: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Token test error:', error);
+                showAlert('Error testing token: ' + error.message, 'danger');
+            } finally {
+                // Reset button
+                btn.disabled = false;
+                loading.classList.remove('show');
+                btnText.textContent = 'Test Token';
+            }
+        }
+        
+        // Update token
+        document.getElementById('tokenForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const accessToken = document.getElementById('accessToken').value.trim();
+            const btn = document.querySelector('button[type="submit"]');
+            const loading = btn.querySelector('.loading');
+            const btnText = btn.querySelector('.btn-text');
+            
+            if (!accessToken) {
+                showAlert('Please enter a token', 'warning');
+                return;
+            }
+            
+            // Show loading
+            btn.disabled = true;
+            loading.classList.add('show');
+            btnText.textContent = 'Updating...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/token/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${AUTH_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ accessToken })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('✅ Token updated successfully!', 'success');
+                    document.getElementById('accessToken').value = '';
+                    loadTokenStatus();
+                    loadTokenInfo();
+                } else {
+                    showAlert(`❌ Failed to update token: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Token update error:', error);
+                showAlert('Error updating token: ' + error.message, 'danger');
+            } finally {
+                // Reset button
+                btn.disabled = false;
+                loading.classList.remove('show');
+                btnText.textContent = 'Update Token';
+            }
+        });
+        
+        // Refresh status
+        function refreshStatus() {
+            loadTokenStatus();
+            loadTokenInfo();
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTokenStatus();
+            loadTokenInfo();
+        });
+    </script>
+</body>
+</html>
