@@ -129,23 +129,29 @@ app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
-// API Routes with error handling
-try {
-  app.use('/api/auth', require('./routes/auth'));
-  app.use('/api/clients', require('./routes/clients'));
-  app.use('/api/contacts', require('./routes/contacts'));
-  app.use('/api/templates', require('./routes/templates'));
-  app.use('/api/messages', require('./routes/messages'));
-  app.use('/api/appointments', require('./routes/appointments'));
-  app.use('/api/billing', require('./routes/billing'));
-  app.use('/api/alerts', require('./routes/alerts'));
-  app.use('/api/webhook', require('./routes/webhook'));
-  app.use('/api/whatsapp', require('./routes/whatsapp'));
-  // app.use('/api/token', require('./routes/token')); // Disabled temporarily
-  console.log('✅ All API routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading API routes:', error);
-}
+// API Routes with better error handling
+const routes = [
+  { path: '/api/auth', file: './routes/auth' },
+  { path: '/api/clients', file: './routes/clients' },
+  { path: '/api/contacts', file: './routes/contacts' },
+  { path: '/api/templates', file: './routes/templates' },
+  { path: '/api/messages', file: './routes/messages' },
+  { path: '/api/appointments', file: './routes/appointments' },
+  { path: '/api/billing', file: './routes/billing' },
+  { path: '/api/alerts', file: './routes/alerts' },
+  { path: '/api/webhook', file: './routes/webhook' },
+  { path: '/api/whatsapp', file: './routes/whatsapp' }
+];
+
+routes.forEach(route => {
+  try {
+    app.use(route.path, require(route.file));
+    console.log(`✅ Loaded route: ${route.path}`);
+  } catch (error) {
+    console.error(`❌ Failed to load route ${route.path}:`, error.message);
+    console.error(error.stack);
+  }
+});
 
 // Socket.io for real-time updates
 io.on('connection', (socket) => {
