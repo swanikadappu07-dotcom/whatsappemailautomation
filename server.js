@@ -141,7 +141,7 @@ try {
   app.use('/api/alerts', require('./routes/alerts'));
   app.use('/api/webhook', require('./routes/webhook'));
   app.use('/api/whatsapp', require('./routes/whatsapp'));
-  app.use('/api/token', require('./routes/token')); // Added token management routes
+  // app.use('/api/token', require('./routes/token')); // Disabled temporarily
   console.log('✅ All API routes loaded successfully');
 } catch (error) {
   console.error('❌ Error loading API routes:', error);
@@ -212,12 +212,12 @@ server.listen(PORT, HOST, async () => {
   // Connect to database
   await connectDB();
   
-  // Start token monitoring in production
-  if (process.env.NODE_ENV === 'production') {
-    const tokenManager = require('./services/tokenManager');
-    tokenManager.startMonitoring();
-    console.log('🔄 Token monitoring started');
-  }
+  // Start token monitoring in production (disabled for now to prevent timeouts)
+  // if (process.env.NODE_ENV === 'production') {
+  //   const tokenManager = require('./services/tokenManager');
+  //   tokenManager.startMonitoring();
+  //   console.log('🔄 Token monitoring started');
+  // }
 });
 
 // Handle server errors
