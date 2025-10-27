@@ -130,14 +130,23 @@ app.get('/debug/routes', (req, res) => {
     if (middleware.route) {
       routes.push({
         path: middleware.route.path,
-        methods: Object.keys(middleware.route.methods)
+        methods: Object.keys(middleware.route.methods),
+        type: 'direct'
       });
-    } else if (middleware.name === 'router') {
+    } else if (middleware.name === 'router' && middleware.regexp) {
+      const basePath = middleware.regexp.toString()
+        .replace('/^\\', '')
+        .replace('\\/?(?=\\/|$)/i', '')
+        .replace(/\\\//g, '/');
+      
       middleware.handle.stack.forEach(handler => {
         if (handler.route) {
           routes.push({
+            mountPath: basePath,
             path: handler.route.path,
-            methods: Object.keys(handler.route.methods)
+            fullPath: basePath + handler.route.path,
+            methods: Object.keys(handler.route.methods),
+            type: 'router'
           });
         }
       });
