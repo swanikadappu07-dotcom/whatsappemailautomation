@@ -161,6 +161,12 @@ app.get('/', (req, res) => {
   res.redirect('/login.html');
 });
 
+// Redirect index.html to login
+app.get('/index.html', (req, res) => {
+  console.log('🏠 Index.html accessed - redirecting to login');
+  res.redirect('/login.html');
+});
+
 // API Routes with better error handling
 const routes = [
   { path: '/api/auth', file: './routes/auth' },
